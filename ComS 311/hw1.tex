@@ -1,0 +1,75 @@
+\documentclass{article}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{epsfig}
+
+% epsf figures (inline or centered)
+\newcommand{\FIG}[1]{\begin{center}
+  \mbox{\epsfclipoff\epsffile{#1.eps}}
+  \end{center}}
+\def\epsfsize#1#2{1.0#1}	      % change 1.0 to any zoom factor you want
+
+% numeric sets
+\newcommand{\Reals}{\mathbb{R}}      % real numbers
+\newcommand{\Naturals}{\mathbb{N}}   % natural numbers
+\newcommand{\Integers}{\mathbb{Z}}   % integer numbers
+\newcommand{\Rationals}{\mathbb{Q}}  % rational numbers
+\newcommand{\Complexes}{\mathbb{C}}  % complex numbers
+\newcommand{\ra}{\Rightarrow}
+ \begin{document}
+ 	\title{COM S 311\large \\Homework 1\\Recitation 5, 1-2pm, Marios Tsekitsidis}
+	\author{Christian Shinkle}
+	\maketitle
+	\begin{enumerate}
+		\item Base Case: Note
+		\[F^2_1=F_1*F_1\]
+		\[1^2=1*1\]
+		\[1=1\]
+		Inductive Hypothesis: $\forall n\leq 1, F^2_1+F^2_2+F^2_3+...+F^2_n=F_n*F_{n+1}$\\
+		Goal: Prove $F^2_1+F^2_2+F^2_3+...+F^2_n+F^2_{n+1}=F_{n+1}*F_{n+2}$\\
+		Inductive Case: By I.H., 
+		$F^2_1+F^2_2+F^2_3+...+F^2_n+F^2_{n+1}=F_n*F_{n+1}+F^2_{n+1}$\\
+		$=F_{n+1}(F_n+F_{n+1})$\\
+		$=F_{n+1}*F_{n+2}$ by definition of Fibonacci Numbers\\ 
+		\item
+		\begin{enumerate}
+		\item 
+		\item Base Case: A $T$ which is a single node is a leaf, so \[i(T)=(n(T)-1)2=(1-1)/2=0\]\\
+		Inductive Hypothesis: Let $X$ and $Y$ be two FBT's with $i(X)=(n(x)-1)/2$ and 
+		$i(Y)=(n(Y)-1)/2$.\\
+		Goal: For tree $R$, $i(R)=(n(R)-1)/2$.\\
+		Inductive Case: Let $R$ be a FBT with root $r$ and left child FBT $X$ and right child FBT $Y$. 
+		Then, $i(R)=i(X)+i(Y)+1$ because $R$ consists of all nodes of $X$ and $Y$ plus the root $r$.
+		By I.H., \\$i(R)=(n(X)-1)/2+(n(Y)-1)/2)+1$. Then, $i(R)$\\
+		$=\frac{(n(X)-1+n(Y)-1}{2}+1$\\
+		$=\frac{(n(X)+n(Y)-2}{2}+1$\\
+		$=\frac{(n(R)-1)-2}{2}+1$ by definition of FBT\\
+		$=(n(R)-1)/2-1+1$\\
+		$=(n(R)-1)/2$\\
+		\end{enumerate}
+		\item Base Case: Note $x=a, m=n, y=1$. Therefore, \\
+		$a^n=x^{m_0}_0*y_0$\\
+		$=a^n*1$\\
+		Inductive Hypothesis: $\forall i, a^n=x^{m_i}_i*y_i$
+		where is the number of iterations through the loop.\\
+		Inductive Case: At the begining of the $i+1th$ iteration through the loop, 
+		one of two cases can arise, $m$ is even or odd.\\
+		Case 1: $m$ is even.  Then, \\
+		$x_{i+1}=x_i^2$, $m_{i+1}=m_i/2$, and $y_{i+1}=y_i$. So,\\
+		$x_{i+1}^{m_{i+1}}*y_{i+1}$\\
+		$=x_i^{2*m_i/2}*y_i$\\
+		$=x_i^{m_i}*y_i$\\
+		By I.H., $a^n=x^{m_i}_i*y_i$, therefore the property holds.\\
+		Case 2: $m$ is odd. Then, \\
+		$y_{i+1}=x_i*y_i$, $x_{i+1}=x_i^2$, and  $m_{i+1}=(m_i-1)/2$. So, \\
+		$x_{i+1}^{m_{i+1}}*y_{i+1}$\\
+		$=x_i^{2*(m_i-1)/2}*x_i*y_i$\\
+		$=x_i^{m_i-1}*x_i*y_i$\\
+		$=x_i^{m_i}*y_i$\\
+		By I.H., $a^n=x^{m_i}_i*y_i$, therefore the property holds.\\
+		Both cases hold, so the property holds for the $i+1th$ iteration.\\
+		\item
+	\end{enumerate}
+ \end{document}
