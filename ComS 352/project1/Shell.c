@@ -57,7 +57,7 @@ int main(void)
       should_run = 0;
     }
     for (i = 0; args[i]; i++)
-      printf("%s",args[i]);
+      printf("%s\n",args[i]);
     
   }
   return 0;
