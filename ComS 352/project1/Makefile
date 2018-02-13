@@ -1,2 +1,2 @@
 make:
-	gcc Shell.c -o Shell
+	gcc -g -o Shell Shell.c
