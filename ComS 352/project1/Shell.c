@@ -210,6 +210,7 @@ void runPipedCommand(char **args, char *statementCopy) {
       fprintf(f, "%s", reading_buf);
     }
     close(my_pipe[0]);
+    
 
     fclose(f);
     args[0] = "more";

@@ -1,4 +1,4 @@
 make:
 	gcc -g -o Shell Shell.c
-make clean:
+clean:
 	rm *~ Shell
