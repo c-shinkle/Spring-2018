@@ -168,13 +168,79 @@ void changeDirectory(char ** args, char *prevDir) {
   }
 }
 
+void runPipedCommand(char **args, char *statementCopy) {
+  char tmp[MAX_LINE];
+  strcpy(tmp, statementCopy);
+  char *parse = tmp;
+  char *firstCmd = strtok_r(parse, "|", &parse);
+  int rc;
+  parseInput(firstCmd, args, &rc);
+  
+  int my_pipe[2];
+  if(pipe(my_pipe) == -1) {
+    fprintf(stderr, "Something went wrong with pipe.\n");
+    return;
+  }
+
+  pid_t pid = fork();
+  if (pid < 0) {
+    fprintf(stderr, "Something went wrong with fork call\n");
+    return;
+  } else if (pid == 0) {
+    //child process
+    close(my_pipe[0]);
+    dup2(my_pipe[1], 1);
+    if (execvp(args[0],args) != 0) {
+      fprintf(stderr, "Something went wrong while executing %s\n", args[0]);
+      exit(1);
+    }
+  } else {
+    //parent process      
+    wait(NULL);
+    
+    FILE *f = fopen(".output.txt", "w+");
+    if (f == NULL) {
+      printf("Something went wrong opening file\n");
+      return;
+    }
+    close(my_pipe[1]);
+
+    char reading_buf[1];
+    while(read(my_pipe[0], reading_buf, 1) > 0) {
+      fprintf(f, "%s", reading_buf);
+    }
+    close(my_pipe[0]);
+
+    fclose(f);
+    args[0] = "more";
+    args[1] = ".output.txt";
+    args[2] = NULL;
+    runCommand(args, 0);
+  }
+  
+}
+
+int checkForPipe(char *statement) {
+  char tmp[MAX_LINE];
+  strcpy(tmp, statement);
+  char *parse = tmp;
+  char *firstCmd = strtok_r(parse, "|", &parse);
+  if (strstr(strtok_r(NULL, "|", &parse), "more")!=0)
+    return 1;
+  else {
+    printf("\"more\" command required for pipe.\n");
+    return 0;
+  } 
+}
+
 int main(void)
 {
   char *args[MAX_LINE/2+1];
-  char line[MAX_LINE], statementCopy[MAX_LINE], prevDir[MAX_LINE] = 0;
+  char line[MAX_LINE], statementCopy[MAX_LINE], prevDir[MAX_LINE];
   char *statement, *line_ptr;
   cmd_t cmds[10];
   int should_run = 1, i = 0, counter = 1, runConcurrently;
+  prevDir[0] = 0;
   while (should_run) {
     printStartOfLine();
     if((fgets(line, MAX_LINE, stdin) ) == NULL) {
@@ -196,7 +262,10 @@ int main(void)
 	if (strcmp(args[0],"exit")==0) {
 	  should_run = 0;
 	} else {
-	  if (strcmp(args[0], "history")==0) {
+	  if (strchr(statementCopy, '|') ) {
+	    if(checkForPipe(statementCopy) )
+	      runPipedCommand(args, statementCopy);
+	  } else if (strcmp(args[0], "history")==0) {
 	    printHistory(i-1, cmds);
 	  } else if (strcmp(args[0], "!!")==0) {
 	    runLastCommand(counter, i, cmds, args);
@@ -216,4 +285,4 @@ int main(void)
   }
   wait(NULL);
   return 0;
-}
+} 
