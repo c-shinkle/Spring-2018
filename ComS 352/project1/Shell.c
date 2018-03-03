@@ -1,3 +1,4 @@
+#include <sys/wait.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -186,6 +187,9 @@ void runLastCommand(int counter, int i, cmd_t *cmds, char **args) {
  */
 void changeDirectory(char ** args, char *prevDir) {
   if (args[1]) {
+    char curDir[MAX_LINE];
+    if (getcwd(curDir, MAX_LINE) == NULL) 
+      fprintf(stderr, "Something went wrong with getcwd...\n");
     if(*args[1]== '-') {
       if (prevDir[0]){
 	if (chdir(prevDir))
@@ -201,12 +205,8 @@ void changeDirectory(char ** args, char *prevDir) {
       }
       if (chdir(args[1]))
 	fprintf(stderr, "System couldn't navigate to %s\n", args[1]);
-    }
-    char curDir[MAX_LINE];
-    if (getcwd(curDir, MAX_LINE) == NULL) 
-      fprintf(stderr, "Something went wrong with getcwd...\n");
-    else 
-      strcpy(prevDir, curDir);
+    } 
+    strcpy(prevDir, curDir);
   } else {
     printf("No path given\n");
   }
