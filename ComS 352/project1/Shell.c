@@ -3,42 +3,57 @@
 #include <stdlib.h>
 #include <unistd.h>
 #define MAX_LINE 80
-
+/**
+ *cmd_t is used to store information for
+ *the hisotry command
+ */
 typedef struct {
   int number;
   char command[MAX_LINE];
 } cmd_t;
-
+/**
+ *This function removes the last character from word.
+ */
 void removeLastChar(char *word) {
   word[strlen(word)-1] = 0;
 }
-
+/**
+ *This fucntion checks if an ampersand is in
+ *the last element of args.
+ */
 int checkForAmpersand(int i, char **args) {
   if (strcmp(args[i-1], "&") == 0)
     return 1;
   return 0;
 }
-
+/**
+ *This function checks if args ends
+ *in a newline character.
+ */
 int checkForNewline (char *args) {
   if (*(args + strlen(args)-1) == '\n')
     return 1;
   return 0;
 }
+/**
+ *This function parses line into tokens 
+ *that are stored in args.
+ *runConcurrently is changed to show whether or
+ *not the command needs to concurrently or not.
+ *Note: strtok will mutate line, so if the caller
+ *doesn't want the date to be changed, they
+ *need to make a copy in the calling scope.
+ *I realize it would have been much more convientent to
+ *make a copy in this function, but this caused errors
+ *that I wasn't abel to debug. 
+ */
 void parseInput(char *line, char **args, int *runConcurrently) {
-  //char lineCopy[MAX_LINE];
-  //strcpy(lineCopy, line);
-  //printf("line: %s\n", line);
-  //printf("lineCopy: %s\n", lineCopy);
   char *token = strtok(line, " ");
   int i;
   for (i=0;token && i < MAX_LINE/2;i++) {
-    //printf("Token is %s", token);
     args[i] = token;
     token = strtok(NULL, " ");
   }
-  
-  //if (strcmp(args[i-1], "\n") == 0)
-  //args[i-1] = NULL;
   
   if (checkForNewline(args[i-1] ) )
     removeLastChar(args[i-1] );
@@ -49,7 +64,10 @@ void parseInput(char *line, char **args, int *runConcurrently) {
 
   args[i] = NULL;
 }
-
+/**
+ *This function will iterate through the circular queue
+ *cmds and will printf off its contents.
+ */
 void printHistory(int i, cmd_t *cmds) {
   int j,k;
   if (i == -1)
@@ -65,13 +83,21 @@ void printHistory(int i, cmd_t *cmds) {
       printf("%d %s\n", cmds[j].number, cmds[j].command);
   }
 }
-
+/**
+ *This function updates the history of the circular queue
+ *at position i.
+ */
 void updateHistory(int *i, int *counter, cmd_t *cmds, char *line) {
   strcpy(cmds[*i].command, line);
   cmds[*i].number = (*counter)++;
   *i = (*i+1)%10;
 }
-
+/**
+ *This function takes in the argurments for the command
+ *to be ran and passes them into execvp(). There
+ *is an optional wait() call if running concurrently
+ *is desired.
+ */
 void runCommand(char **args, int runConcurrently) {
   pid_t pid = fork();
   if (pid < 0) {
@@ -89,12 +115,18 @@ void runCommand(char **args, int runConcurrently) {
       wait(NULL);
   }
 }
-
+/**
+ *This function flushes the stream
+ */
 void printStartOfLine() {
   printf("osh> ");
   fflush(stdout);
 }
-
+/**
+ *This function checks to see if 
+ *the formattin of word is correct
+ *for the function for runHistory
+ */
 int checkForHistory(char *word) {
   int x = 0;
   char c = word[0];
@@ -106,7 +138,11 @@ int checkForHistory(char *word) {
   }
   return x;
 }
-
+/**
+ *This function uses the values of counter and i to find
+ *the location in the circular queue of the command
+ *from history to be ran. 
+ */
 void runHistory(int counter, int i, cmd_t *cmds, char **args) {
   if (counter == 1)
     printf("No commands have been entered yet.\n");
@@ -114,7 +150,6 @@ void runHistory(int counter, int i, cmd_t *cmds, char **args) {
     char *cmdNum = args[0]+1;
     int num = atoi(cmdNum);
     int cur = (i==0) ? cmds[9].number : cmds[i-1].number;
-    //printf("num=%d,cur=%d\n",num,cur);
     if (num > 0 && cur-9 <= num && num <= cur) {
       char tmp[MAX_LINE];
       int rc;
@@ -126,7 +161,10 @@ void runHistory(int counter, int i, cmd_t *cmds, char **args) {
     }
   }
 }
-
+/**
+ *This function find the previous command using
+ *counter and i and runs it.
+ */
 void runLastCommand(int counter, int i, cmd_t *cmds, char **args) {
   if (counter==1) {
     printf("No previous command\n");
@@ -139,7 +177,13 @@ void runLastCommand(int counter, int i, cmd_t *cmds, char **args) {
   parseInput(lastCommand, args, &rc);
   runCommand(args, rc);
 }
-
+/**
+ *This function changes the directory using the given
+ *directory path in args. This functions also handles 
+ *getting the previous directory using prevDir that
+ *is stored in the main, and using ~ to find the home
+ *directory. 
+ */
 void changeDirectory(char ** args, char *prevDir) {
   if (args[1]) {
     if(*args[1]== '-') {
@@ -167,7 +211,13 @@ void changeDirectory(char ** args, char *prevDir) {
     printf("No path given\n");
   }
 }
-
+/**
+ *This function rans piped commands by getting the first instruction,
+ *running it and piping its output to the parent process. Then,
+ *the parent process stores its output in a hidden file called
+ *.output.txt. Then, more() is called with .output.txt used as 
+ *its parameter.  
+ */
 void runPipedCommand(char **args, char *statementCopy) {
   char tmp[MAX_LINE];
   strcpy(tmp, statementCopy);
@@ -175,13 +225,11 @@ void runPipedCommand(char **args, char *statementCopy) {
   char *firstCmd = strtok_r(parse, "|", &parse);
   int rc;
   parseInput(firstCmd, args, &rc);
-  
   int my_pipe[2];
   if(pipe(my_pipe) == -1) {
     fprintf(stderr, "Something went wrong with pipe.\n");
     return;
   }
-
   pid_t pid = fork();
   if (pid < 0) {
     fprintf(stderr, "Something went wrong with fork call\n");
@@ -197,21 +245,17 @@ void runPipedCommand(char **args, char *statementCopy) {
   } else {
     //parent process      
     wait(NULL);
-    
     FILE *f = fopen(".output.txt", "w+");
     if (f == NULL) {
       printf("Something went wrong opening file\n");
       return;
     }
     close(my_pipe[1]);
-
     char reading_buf[1];
     while(read(my_pipe[0], reading_buf, 1) > 0) {
       fprintf(f, "%s", reading_buf);
     }
     close(my_pipe[0]);
-    
-
     fclose(f);
     args[0] = "more";
     args[1] = ".output.txt";
@@ -220,7 +264,10 @@ void runPipedCommand(char **args, char *statementCopy) {
   }
   
 }
-
+/**
+ *This function checks if statement is well-formed
+ *for runPipedCommand().
+ */
 int checkForPipe(char *statement) {
   char tmp[MAX_LINE];
   strcpy(tmp, statement);
@@ -233,7 +280,13 @@ int checkForPipe(char *statement) {
     return 0;
   } 
 }
-
+/**
+ *The main is documented in more detail in the readme.
+ *This function declars all variables needed for the program.
+ *It continuously parses input from the terminal and runs
+ *the commands, mostly using runCommand. It also handles 
+ *updating the circular queue cmds at the end of each iteration.
+ */
 int main(void)
 {
   char *args[MAX_LINE/2+1];
@@ -250,16 +303,11 @@ int main(void)
       runConcurrently = 0;
       line_ptr = line;
       statement = strtok_r(line_ptr, ";", &line_ptr);
-      //while statement isn't null, do contents of loop, then get new token
       for (;statement;statement = strtok_r(NULL, ";", &line_ptr)) {
 	strcpy(statementCopy, statement);
 	if (strlen(statementCopy) && checkForNewline(statement))
 	  removeLastChar(statementCopy);
-	//printf("Before parse: statement %s args[0]%s\n", statement, args[0]);
 	parseInput(statement, args, &runConcurrently);
-	//printf("After parse: statement %s args[0]%s\n", statement, args[0]);
-	//for (j = 0;args[j];j++)
-	//printf("%s:length %d\n", args[j], strlen(args[j]));
 	if (strcmp(args[0],"exit")==0) {
 	  should_run = 0;
 	} else {
@@ -271,9 +319,7 @@ int main(void)
 	  } else if (strcmp(args[0], "!!")==0) {
 	    runLastCommand(counter, i, cmds, args);
 	  } else if (checkForHistory(args[0])) {
-	    //printf("Before: statement %s flag %d\n", statement, runningHistoryCmd);
 	    runHistory(counter, i, cmds, args);
-	    //printf("After: statement %s flag %d\n", statement, runningHistoryCmd);
 	  } else if (strcmp(args[0], "cd")==0) {
 	    changeDirectory(args, prevDir);
 	  } else {

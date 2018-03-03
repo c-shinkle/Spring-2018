@@ -25,20 +25,12 @@
   return 0;
 }
 void parseInput(char *line, char **args, int *runConcurrently) {
-  //char lineCopy[MAX_LINE];
-  //strcpy(lineCopy, line);
-  //printf("line: %s\n", line);
-  //printf("lineCopy: %s\n", lineCopy);
   char *token = strtok(line, " ");
   int i;
   for (i=0;token && i < MAX_LINE/2;i++) {
-    //printf("Token is %s", token);
     args[i] = token;
     token = strtok(NULL, " ");
   }
-  
-  //if (strcmp(args[i-1], "\n") == 0)
-  //args[i-1] = NULL;
   
   if (checkForNewline(args[i-1] ) )
     removeLastChar(args[i-1] );
@@ -114,7 +106,6 @@
     char *cmdNum = args[0]+1;
     int num = atoi(cmdNum);
     int cur = (i==0) ? cmds[9].number : cmds[i-1].number;
-    //printf("num=%d,cur=%d\n",num,cur);
     if (num > 0 && cur-9 <= num && num <= cur) {
       char tmp[MAX_LINE];
       int rc;
@@ -175,13 +166,11 @@
   char *firstCmd = strtok_r(parse, "|", &parse);
   int rc;
   parseInput(firstCmd, args, &rc);
-  
   int my_pipe[2];
   if(pipe(my_pipe) == -1) {
     fprintf(stderr, "Something went wrong with pipe.\n");
     return;
   }
-
   pid_t pid = fork();
   if (pid < 0) {
     fprintf(stderr, "Something went wrong with fork call\n");
@@ -197,20 +186,17 @@
   } else {
     //parent process      
     wait(NULL);
-    
     FILE *f = fopen(".output.txt", "w+");
     if (f == NULL) {
       printf("Something went wrong opening file\n");
       return;
     }
     close(my_pipe[1]);
-
     char reading_buf[1];
     while(read(my_pipe[0], reading_buf, 1) > 0) {
       fprintf(f, "%s", reading_buf);
     }
     close(my_pipe[0]);
-
     fclose(f);
     args[0] = "more";
     args[1] = ".output.txt";
@@ -232,6 +218,7 @@
     return 0;
   } 
 }
+
 int main(void)
 {
   char *args[MAX_LINE/2+1];
@@ -248,16 +235,11 @@
       runConcurrently = 0;
       line_ptr = line;
       statement = strtok_r(line_ptr, ";", &line_ptr);
-      //while statement isn't null, do contents of loop, then get new token
       for (;statement;statement = strtok_r(NULL, ";", &line_ptr)) {
 	strcpy(statementCopy, statement);
 	if (strlen(statementCopy) && checkForNewline(statement))
 	  removeLastChar(statementCopy);
-	//printf("Before parse: statement %s args[0]%s\n", statement, args[0]);
 	parseInput(statement, args, &runConcurrently);
-	//printf("After parse: statement %s args[0]%s\n", statement, args[0]);
-	//for (j = 0;args[j];j++)
-	//printf("%s:length %d\n", args[j], strlen(args[j]));
 	if (strcmp(args[0],"exit")==0) {
 	  should_run = 0;
 	} else {
@@ -269,9 +251,7 @@
 	  } else if (strcmp(args[0], "!!")==0) {
 	    runLastCommand(counter, i, cmds, args);
 	  } else if (checkForHistory(args[0])) {
-	    //printf("Before: statement %s flag %d\n", statement, runningHistoryCmd);
 	    runHistory(counter, i, cmds, args);
-	    //printf("After: statement %s flag %d\n", statement, runningHistoryCmd);
 	  } else if (strcmp(args[0], "cd")==0) {
 	    changeDirectory(args, prevDir);
 	  } else {

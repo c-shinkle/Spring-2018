@@ -1,0 +1,16 @@
+A shell implementation by Christian Shinkle.
+
+The overview of the shell consists of taking in input, parsing it (possibly multiple times),
+and passing the parsed tokens to execvp() to execute the system call. 
+
+For the main, it consists of setting up all variables needed running in three loops:
+the outer loop, and the inner (statement) loop. 
+
+The outer loop is only responsible for running the inner two loops until the user 
+enters "exit", which end the loop and the program as a whole, and for taking in input
+using fgets(). This input is then stored in the line variable and used for parsing.
+
+The inner loop is responsible for parsing line into statements seperated by semi colons.
+Each statement is treated as an individual command and will be ran according to specifications.
+Most commands are handled through the runCommand() function. After each command is finished,
+they are stored in a circular queue int order to be retrieved by the history command.
