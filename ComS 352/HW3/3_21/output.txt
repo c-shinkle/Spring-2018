@@ -1,0 +1,160 @@
+948  make
+  949  clear
+  950  valgrind ./Shell
+  951  make
+  952  clear
+  953  valgrind ./Shell
+  954  make
+  955  make
+  956  clear
+  957  valgrind ./Shell
+  958  make
+  959  clear
+  960  valgrind ./Shell
+  961  make
+  962  clear
+  963  valgrind
+  964  valgrind ./Shell
+  965  make
+  966  make
+  967  clear
+  968  valgrind ./Shell
+  969  make
+  970  celar
+  971  clear
+  972  valgrind ./Shell
+  973  make
+  974  clear
+  975  valgrind ./Shell
+  976  make
+  977  clear
+  978  ./Shell 
+  979  make
+  980  make
+  981  clear
+  982  ./Shell 
+  983  ls
+  984  clear
+  985  make
+  986  ./Shell 
+  987  make
+  988  make
+  989  more
+  990  ls -l | more
+  991  history|more
+  992  ./Shell 
+  993  ls
+  994  cd ../..
+  995  git add -A
+  996  git commit -m "A lot of work one the shell."
+  997  git push origin master
+  998  ls|more
+  999  cat Shell.c|more
+ 1000  ls
+ 1001  cd ComS\ 352
+ 1002  cd project1/
+ 1003  ls
+ 1004  cat Shell.c|more
+ 1005  man more
+ 1006  cat Shell.c|more
+ 1007  make
+ 1008  clear
+ 1009  make
+ 1010  make
+ 1011  clear
+ 1012  ./Shell 
+ 1013  ls | more
+ 1014  grep
+ 1015  ls | grep "Shell"
+ 1016  ls | grep Shell
+ 1017  history
+ 1018  clear
+ 1019  make
+ 1020  clear
+ 1021  more ls
+ 1022  ls
+ 1023  more
+ 1024  stdin
+ 1025  more Shell.c
+ 1026  ./Shell 
+ 1027  clear
+ 1028  Shell.c
+ 1029  Shell.c | more
+ 1030  more Shell.c
+ 1031  clear
+ 1032  cd ..
+ 1033  ls
+ 1034  cd HW3
+ 1035  ls
+ 1036  cd 3_21
+ 1037  ls
+ 1038  cate Makefile
+ 1039  cat Makefile
+ 1040  make
+ 1041  ls
+ 1042  cat a.txt 
+ 1043  make
+ 1044  clear
+ 1045  ./3_21 
+ 1046  cd ../..
+ 1047  cd project1/
+ 1048  ls
+ 1049  touch output.txt
+ 1050  cd ../HW3/3_21
+ 1051  ls
+ 1052  make
+ 1053  ./3_21 
+ 1054  more a.txt 
+ 1055  make
+ 1056  ./3_21 
+ 1057  ls
+ 1058  more a.txt 
+ 1059  make
+ 1060  ./3_21 
+ 1061  more a.txt 
+ 1062  man fclose
+ 1063  man fopen
+ 1064  make
+ 1065  clear
+ 1066  ./3_21 
+ 1067  make
+ 1068  ./3_21 
+ 1069  more a.txt 
+ 1070  make
+ 1071  ./3_21 
+ 1072  man freopen
+ 1073  man read
+ 1074  cd ../../project1/
+ 1075  ls
+ 1076  cd ../HW3/3_21
+ 1077  ls
+ 1078  make
+ 1079  clear
+ 1080  ./3_21 
+ 1081  cat output.txt 
+ 1082  make
+ 1083  ./3_21 
+ 1084  cat output.txt 
+ 1085  make
+ 1086  ./3_21 
+ 1087  cat output.txt 
+ 1088  cat output.txt 
+ 1089  cat output.txt 
+ 1090  cat output.txt 
+ 1091  ./3_21 
+ 1092  cat output.txt 
+ 1093  cat output.txt 
+ 1094  ls -l
+ 1095  clear
+ 1096  make
+ 1097  clear
+ 1098  make
+ 1099  make
+ 1100  ./3_21 
+ 1101  cat output.txt 
+ 1102  make
+ 1103  ./3_21 
+ 1104  cat output.txt 
+ 1105  make
+ 1106  ./3_21 
+ 1107  history 

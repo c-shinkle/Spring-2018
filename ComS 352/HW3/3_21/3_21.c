@@ -3,38 +3,26 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/file.h>
-#include <sys/mman.h>
-#include <sys/wait.h>
-#include <sys/types.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <unistd.h>
+#define MAX_LINE 80
+
+int checkForPipe(char *statement) {
+  char tmp[MAX_LINE];
+  strcpy(tmp, statement);
+  char *parse = tmp;
+  char *firstCmd = strtok_r(parse, "|", &parse);
+  if (strcmp(strtok_r(NULL, "|", &parse), "more")==0)
+    return 1;
+  else {
+    printf("\"more\" command required for pipe.\n");
+    return 0;
+  } 
+}
 
 int main(int argc, char **argv)
 {
-  if (argc == 1) {
-    printf("This program needs command-line arguments.\n");
-  }
-
-  int n = atoi(argv[1]);
-
-  if (n == 0) {
-    printf("A positive integer is required.\n");
-    return 1;
-  }
-  
-  pid_t pid = fork();
-  if (pid != 0) { 
-    //Parent process
-    wait(NULL);
-    printf("1\n");
-    return 0;
-  } else {
-    //Child process
-    while(n!=1) {
-      printf("%d, ",n);
-      if (n % 2 == 0) {
-	n /= 2;
-      } else {
-	n = 3*n+1;
-      }
-    }
-  }
+  printf("%d\n", checkForPipe("ls | a"));
 }
