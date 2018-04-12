@@ -64,12 +64,12 @@ int main(int argc, char **argv)
         return -1;
     }
 
-    send(sock , request, strlen(request) , 0 );
+    //send(sock , request, strlen(request) , 0 );
     printf("Message sent\n");
 
-    valread = read( sock , buffer, 1024);
+    //valread = read( sock , buffer, 1024);
 
-    printf("%s\n",buffer );
+    printf("%s\n", request);
     return 0;
 }
 
