@@ -7,6 +7,8 @@
 #include <arpa/inet.h>
 #include <time.h>
 
+#define BUFFER_SIZE 32768
+
 #define HTTP " HTTP/1.1"
 #define NL "\r\n"
 #define HOST "Host: "
@@ -16,9 +18,9 @@ char *parse_url(char *url, int is_header, char *date, int *port);
 
 char *format_date(char *date);
 
-int main(int argc, char **argv)
-{
-    struct sockaddr_in address;
+void write_response(int socket);
+
+int main(int argc, char **argv) {
     int sock = 0, valread, is_header = 0, port = 80;
     struct sockaddr_in serv_addr;
     char *date = NULL, *url, buffer[1024] = {0};
@@ -64,12 +66,13 @@ int main(int argc, char **argv)
         return -1;
     }
 
-    //send(sock , request, strlen(request) , 0 );
+    send(sock , request, strlen(request) , 0 );
+
     printf("Message sent\n");
 
-    //valread = read( sock , buffer, 1024);
+    write_response(sock);
 
-    printf("%s\n", request);
+    printf("Message received\n");
     return 0;
 }
 
@@ -151,4 +154,24 @@ char *format_date(char *date) {
 
     result = strdup(ctime(&n_time));
     return result;
+}
+
+void write_response(int socket) {
+    char reading_buffer[BUFFER_SIZE];
+    int value_read;
+    FILE *response = fopen("response", "w+");
+    if (response == NULL) {
+        perror("writing file");
+        exit(EXIT_FAILURE);
+    }
+
+    do {
+        value_read = read(socket, reading_buffer, BUFFER_SIZE);
+        if (value_read < 0) {
+            perror("writing file");
+            exit(EXIT_FAILURE);
+        }
+        fprintf(response, "%s", reading_buffer);
+    } while (value_read == BUFFER_SIZE);
+    fclose(response);
 }
