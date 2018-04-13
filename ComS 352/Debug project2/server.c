@@ -10,6 +10,7 @@
 
 #define PORT 8949
 #define BUFFER_SIZE 1024
+#define NUM_THREAD 3
 
 #define FILE_NOT_FOUND "HTTP/1.1 404 Not Found\r\n"
 #define FILE_FOUND "HTTP/1.1 200 OK\r\n"
@@ -37,8 +38,8 @@ void *doit(void *new_socket);
 
 int main(int argc, char **argv) {
     struct sockaddr_in address;
-    int server_fd, opt = 1, addrlen = sizeof(address), new_socket;
-
+    int server_fd, opt = 1, addrlen = sizeof(address), new_socket, suc;
+    
     // Creating socket file descriptor
     if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
         perror("socket failed");
@@ -60,8 +61,8 @@ int main(int argc, char **argv) {
              sizeof(address)) < 0) {
         perror("bind failed");
         exit(EXIT_FAILURE);
-    }
-    if (listen(server_fd, 3) < 0) {
+    } 
+    if (listen(server_fd, NUM_THREAD) < 0) {
         perror("listen");
         exit(EXIT_FAILURE);
     }
@@ -71,8 +72,11 @@ int main(int argc, char **argv) {
             perror("accept");
             exit(EXIT_FAILURE);
         }
-        pthread_t thread;
-        pthread_create(&thread, NULL, doit, &new_socket);
+	pthread_t thread;	
+        suc = pthread_create(&thread, NULL, doit, &new_socket);
+        if (suc == 0) {
+           pthread_detach(thread);
+        }
     }
 }
 
