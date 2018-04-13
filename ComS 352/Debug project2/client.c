@@ -68,6 +68,8 @@ int main(int argc, char **argv) {
 
     send(sock , request, strlen(request) , 0 );
 
+    free(request);
+
     printf("Message sent\n");
 
     write_response(sock);
@@ -166,11 +168,12 @@ void write_response(int socket) {
     }
 
     do {
-        value_read = read(socket, reading_buffer, BUFFER_SIZE);
+        value_read = read(socket, reading_buffer, BUFFER_SIZE-1);
         if (value_read < 0) {
             perror("writing file");
             exit(EXIT_FAILURE);
         }
+        reading_buffer[value_read] = 0;
         fprintf(response, "%s", reading_buffer);
     } while (value_read == BUFFER_SIZE);
     fclose(response);
