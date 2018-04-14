@@ -286,6 +286,11 @@ void *doit(void *p) {
     int new_socket = *ptr;
     char client_response_buffer[BUFFER_SIZE] = {0};
     read(new_socket, client_response_buffer, BUFFER_SIZE);
+	
+    if (client_response_buffer[0] == 0) {
+        perror("read failed");
+        exit(EXIT_FAILURE);
+    }
 
     printf("Message received\n");
 
