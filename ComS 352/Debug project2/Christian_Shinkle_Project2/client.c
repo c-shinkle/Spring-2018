@@ -13,13 +13,20 @@
 #define NL "\r\n"
 #define HOST "Host: "
 #define IMS "If-Modified-Since: "
-
+/* This function takes the URL from the command line and parses it
+*  into a request for the server.
+*/
 char *parse_url(char *url, int is_header, char *date, int *port);
-
+/* This function parse the date from the command line
+*  into a string for the request
+*/
 char *format_date(char *date);
-
+/* This function writes the response from the server into
+*  a file using a buffer.
+*/
 void write_response(int socket);
-
+/* The main initialize variables for parse_url()
+*/
 int main(int argc, char **argv) {
     int sock = 0, valread, is_header = 0, port = 80;
     struct sockaddr_in serv_addr;

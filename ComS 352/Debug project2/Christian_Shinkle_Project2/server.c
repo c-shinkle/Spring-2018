@@ -17,25 +17,36 @@
 #define NOT_MOD "HTTP/1.1 304 Not Modified\r\n"
 #define IF_MOD "If-Modified-Since:"
 #define BAD_REQ "HTTP/1.1 400 Bad Request\r\n"
-
+/*This struct is used to store the information necessary to compare times */ 
 typedef struct {
     int year, month, day, hour, min;
 }mytime_t;
-
+/* This function loads the contents of the file specified by the client
+ * and loads it into dynamically allocated memory.
+ */ 
 char *load_file_contents(char *filename);
-
+/* This function takes a month as a string and 
+ * converts it into an int.
+ */
 int get_month(char *m);
-
+/* This function contains the branching logic for parse_client_response */
 char *client_response_helper(int is_get, char *modified, char *date, char* filename);
-
+/* This function parses the response from the client */ 
 char *parse_client_response(char *src);
-
+/* This function takes in the date from the client and parses it */
 void parse_time(mytime_t *my, char *date);
-
+/* This function takes the date from the client and checks to see if
+ * the file has been modified since that date.
+ */
 int calc_diff(char *date, char *filename);
-
+/* This function carries out the work of the server by allowing
+ * a thread to handle it.
+ */
 void *doit(void *new_socket);
-
+/* The main sets up all the boiler plate for the socket and accepts incoming
+ * response from a client by creating a thread and giving it doit() to 
+ * perform the work.
+ */
 int main(int argc, char **argv) {
     struct sockaddr_in address;
     int server_fd, opt = 1, addrlen = sizeof(address), new_socket, suc;
