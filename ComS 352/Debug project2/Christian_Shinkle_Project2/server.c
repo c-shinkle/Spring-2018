@@ -6,35 +6,51 @@
 #include <unistd.h>
 #include <time.h>
 #include <sys/stat.h>
+#include <pthread.h>
 
-#define PORT 8080
+#define PORT 8949
 #define BUFFER_SIZE 1024
+#define NUM_THREAD 3
 
 #define FILE_NOT_FOUND "HTTP/1.1 404 Not Found\r\n"
 #define FILE_FOUND "HTTP/1.1 200 OK\r\n"
-#define NOT_MOD "HTTP/1.1 304 Not Modified"
+#define NOT_MOD "HTTP/1.1 304 Not Modified\r\n"
 #define IF_MOD "If-Modified-Since:"
-#define BAD_REQ "HTTP/1.1 400 Bad Request"
-
+#define BAD_REQ "HTTP/1.1 400 Bad Request\r\n"
+/*This struct is used to store the information necessary to compare times */ 
 typedef struct {
     int year, month, day, hour, min;
 }mytime_t;
-
-void read_input(int socket);
-
-void display_response();
-
+/* This function loads the contents of the file specified by the client
+ * and loads it into dynamically allocated memory.
+ */ 
+char *load_file_contents(char *filename);
+/* This function takes a month as a string and 
+ * converts it into an int.
+ */
+int get_month(char *m);
+/* This function contains the branching logic for parse_client_response */
+char *client_response_helper(int is_get, char *modified, char *date, char* filename);
+/* This function parses the response from the client */ 
 char *parse_client_response(char *src);
-
+/* This function takes in the date from the client and parses it */
+void parse_time(mytime_t *my, char *date);
+/* This function takes the date from the client and checks to see if
+ * the file has been modified since that date.
+ */
 int calc_diff(char *date, char *filename);
-
-int main(int argc, char const *argv[]) {
-    int server_fd, new_socket;
+/* This function carries out the work of the server by allowing
+ * a thread to handle it.
+ */
+void *doit(void *new_socket);
+/* The main sets up all the boiler plate for the socket and accepts incoming
+ * response from a client by creating a thread and giving it doit() to 
+ * perform the work.
+ */
+int main(int argc, char **argv) {
     struct sockaddr_in address;
-    int opt = 1;
-    int addrlen = sizeof(address);
-    char *hello = "I got the message!";
-
+    int server_fd, opt = 1, addrlen = sizeof(address), new_socket, suc;
+    
     // Creating socket file descriptor
     if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
         perror("socket failed");
@@ -56,8 +72,8 @@ int main(int argc, char const *argv[]) {
              sizeof(address)) < 0) {
         perror("bind failed");
         exit(EXIT_FAILURE);
-    }
-    if (listen(server_fd, 3) < 0) {
+    } 
+    if (listen(server_fd, NUM_THREAD) < 0) {
         perror("listen");
         exit(EXIT_FAILURE);
     }
@@ -67,55 +83,16 @@ int main(int argc, char const *argv[]) {
             perror("accept");
             exit(EXIT_FAILURE);
         }
-
-        char client_response_buffer[BUFFER_SIZE];
-        read(new_socket, client_response_buffer, BUFFER_SIZE);
-
-        //Need to free pointer
-        char *server_response = parse_client_response(client_response_buffer);
-
-        send(new_socket, server_response, strlen(server_response), 0);
-        printf("Message sent\n");
-
-        free(server_response);
+	pthread_t thread;	
+        suc = pthread_create(&thread, NULL, doit, &new_socket);
+        if (suc == 0) {
+           pthread_detach(thread);
+        }
     }
-}
-
-void display_response() {
-    char c;
-    FILE *response = fopen("response", "r");
-    if (response == NULL) {
-        perror("reading file");
-        exit(EXIT_FAILURE);
-    }
-    for (c = (char) fgetc(response); c != EOF; c = (char) fgetc(response))
-        printf("%c", c);
-    printf("\n");
-    fclose(response);
-}
-
-void read_input(int socket) {
-//    FILE *input = fopen("response", "w+");
-//    if (input == NULL) {
-//        perror("writing file");
-//        exit(EXIT_FAILURE);
-//    }
-    char reading_buffer[BUFFER_SIZE];
-    int chars_read = read(socket, reading_buffer, BUFFER_SIZE);
-    //fprintf(input, "%s", reading_buffer);
-//    do {
-//        chars_read = read(socket, reading_buffer, BUFFER_SIZE);
-//        if (chars_read < 0) {
-//            perror("writing file");
-//            exit(EXIT_FAILURE);
-//        }
-//        fprintf(input, "%s", reading_buffer);
-//    } while (chars_read > 0);
-    //fclose(input);
 }
 
 char *load_file_contents(char *filename) {
-    int status_size = strlen(FILE_FOUND);
+    int status_size = (int) strlen(FILE_FOUND);
     char *buffer = NULL;
     long length;
     FILE * f = fopen (filename, "rb");
@@ -164,6 +141,23 @@ int get_month(char *m) {
     }
 }
 
+char *client_response_helper(int is_get, char *modified, char *date, char* filename) {
+    if (modified != NULL) {
+        if (strcmp(modified, IF_MOD) == 0) {
+            int diff = calc_diff(date, filename);
+            if (diff == -1) {
+                return (is_get) ? load_file_contents(filename) : strdup(FILE_FOUND);
+            } else {
+                return strdup(NOT_MOD);
+            }
+        } else {
+            return strdup(BAD_REQ);
+        }
+    } else {
+        return (is_get) ? load_file_contents(filename) : strdup(FILE_FOUND);
+    }
+}
+
 char *parse_client_response(char *src) {
     char *method, *filename, *version, *parse, *modified = NULL,
             *line, *line_dup, *line_free, *result = NULL, *date = NULL, *date_free;
@@ -193,22 +187,9 @@ char *parse_client_response(char *src) {
     if (f != NULL) {
         fclose(f);
         if (strcmp(method, "GET") == 0) {
-            if (modified != NULL) {
-                if (strcmp(modified, IF_MOD) == 0) {
-                    int diff = calc_diff(date, filename);
-                    if (diff == -1) {
-                        result = load_file_contents(filename);
-                    } else {
-                        result = strdup(NOT_MOD);
-                    }
-                } else {
-                    result = strdup(BAD_REQ);
-                }
-            } else {
-                result = load_file_contents(filename);
-            }
+            result = client_response_helper(1, modified, date, filename);
         } else if (strcmp(method, "HEAD") == 0) {
-            result = strdup(FILE_FOUND);
+            result = client_response_helper(0, modified, date, filename);
         } else {
             result = strdup(BAD_REQ);
         }
@@ -226,39 +207,7 @@ char *parse_client_response(char *src) {
     return result;
 }
 
-void parse_time_from_client(mytime_t *my, char *date) {
-    int year, month, day, hour, min;
-    //weekday
-    strtok_r(date, " ", &date);
-
-    //month
-    char *month_s = strtok_r(NULL, " ", &date);
-    month = get_month(month_s);
-
-    //day
-    char *day_s = strtok_r(NULL, " ", &date);
-    day = (int) strtol(day_s, (char **)NULL, 10);
-
-    //year
-    char *year_s = strtok_r(NULL, " ", &date);
-    year = (int) strtol(year_s, (char **)NULL, 10);
-
-    //hour
-    char *hour_s = strtok_r(NULL, ":", &date);
-    hour = (int) strtol(hour_s, (char **)NULL, 10);
-
-    //min
-    char *min_s = strtok_r(NULL, ":", &date);
-    min = (int) strtol(min_s, (char **)NULL, 10);
-
-    my->year = year;
-    my->month = month;
-    my->day = day;
-    my->hour = hour;
-    my->min = min;
-}
-
-void parse_time_from_file(mytime_t *my, char *date) {
+void parse_time(mytime_t *my, char *date) {
     int year, month, day, hour, min;
     //weekday
     strtok_r(date, " ", &date);
@@ -297,7 +246,7 @@ int calc_diff(char *date, char *filename) {
     mytime_t since;
     mytime_t file;
 
-    parse_time_from_client(&since, date);
+    parse_time(&since, date);
 
     struct stat fileStat;
     if (stat(filename, &fileStat) < 0) {
@@ -308,7 +257,7 @@ int calc_diff(char *date, char *filename) {
 
     char tmp[30];
     strcpy(tmp, ctime(&last_mod));
-    parse_time_from_file(&file, tmp);
+    parse_time(&file, tmp);
 
     if (since.year < file.year) {
         return -1;
@@ -341,4 +290,26 @@ int calc_diff(char *date, char *filename) {
             }
         }
     }
+}
+
+void *doit(void *p) {
+    int *ptr = (int *) p;
+    int new_socket = *ptr;
+    char client_response_buffer[BUFFER_SIZE] = {0};
+    read(new_socket, client_response_buffer, BUFFER_SIZE);
+	
+    if (client_response_buffer[0] == 0) {
+        perror("read failed");
+        exit(EXIT_FAILURE);
+    }
+
+    printf("Message received\n");
+
+    //Need to free pointer
+    char *server_response = parse_client_response(client_response_buffer);
+
+    send(new_socket, server_response, strlen(server_response), 0);
+    printf("Message sent\n");
+
+    free(server_response);
 }
