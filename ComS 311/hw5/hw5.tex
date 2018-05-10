@@ -1,0 +1,102 @@
+\documentclass{article}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{epsfig}
+
+% epsf figures (inline or centered)
+\newcommand{\FIG}[1]{\begin{center}
+  \mbox{\epsfclipoff\epsffile{#1.eps}}
+  \end{center}}
+\def\epsfsize#1#2{1.0#1}	      % change 1.0 to any zoom factor you want
+
+% numeric sets
+\newcommand{\Reals}{\mathbb{R}}      % real numbers
+\newcommand{\Naturals}{\mathbb{N}}   % natural numbers
+\newcommand{\Integers}{\mathbb{Z}}   % integer numbers
+\newcommand{\Rationals}{\mathbb{Q}}  % rational numbers
+\newcommand{\Complexes}{\mathbb{C}}  % complex numbers
+\newcommand\tab[1][5mm]{\hspace*{#1}}
+ \begin{document}
+ 	\title{COM S 311\large \\Homework 5\\Recitation 5, 1-2pm, Marios Tsekitsidis}
+	\author{Christian Shinkle}
+	\maketitle
+	\begin{enumerate}
+		\item If we place every vertices in $V$ into a priority queue, back by a max-hep, and 
+		pritortize them based on the size of their degree. We can reduce the runtime of this algorithm
+		$O(nlogn)$ where $n$ is the number of vertices in $V$.\\
+		\item 
+		\begin{enumerate}
+			\item The algorithm is as follows:\\
+			Input: Graph $G$ and Set $S$\\
+			Let $visited$ be an array of size $|S|$ where all elements are 0.\\
+			for each $s\in S$\\
+			$\tab$ for each $e$ that is adjacent to $s$\\
+			$\tab \tab$ if $visited[e] ==0$\\
+			$\tab \tab \tab$ $visited[e]\gets 1$\\
+			$\tab \tab$ else \\
+			$\tab \tab \tab$ return false\\
+			return true\\
+			The largest $S$ can be is $|V|=n$, so it will take $O(n)$. The outer loop will take $n$ 
+			time and the inner loop will take $n$ time, so the loops will take $O(n^2)$ time. 
+			Therefore the runtime is $O(n)+O(n^2)\in O(n^2)$.\\
+			\item The algorithm is as follows:\\
+			Input: Graph $G$\\
+			Calculate all $2^n$ combinations of independent sets\\
+			Let $S$ be the largest of all the sets\\
+			return $S$\\
+			This problem is NP, so the runtime will be at least in $2^N$. It will take $n$ time to 
+			calculate a single independent set and there are $2^n$ number of sets possible in the 
+			worst case, so this algorithm is $\in O(2^n)$.\\ 
+		\end{enumerate}
+		\item The algorithm is as follows:\\
+		Input: $n\times m$ matrix $M$\\
+		Let $C$ be an $n\times m$ matrix that has all cells initialized to $-\infty$.\\
+		for $i$ in the range 1 to $n$\\
+		$\tab$ $C[i,1]\gets M[i,1] $\\
+		for $i$ in the range 1 to $n$\\
+		$\tab$ for $j$ in the range 2 to $m$\\
+		$\tab \tab$ if $i-1$ is in bounds and $M[i-1,j-1]+M[i,j]>C[i,j]$\\
+		$\tab \tab \tab C[i,j]\gets M[i-1,j-1]+M[i,j]$\\
+		$\tab \tab$ if $M[i,j-1]+M[i,j]>C[i,j]$\\
+		$\tab \tab \tab C[i,j]\gets M[i-1,j-1]+M[i,j]$\\
+		$\tab \tab$ if $i+1$ is in bounds and $M[i+1,j-1]+M[i,j]>C[i,j]$\\
+		$\tab \tab \tab C[i,j]\gets M[i+1,j-1]+M[i,j]$\\
+		return the max value in the $m$ column of $C$.\\
+		The recurrence relationship is as follows:\\
+		$T(i,j)=$ max$(T(i-1,j-1),\ T(i,j-1),\ T(i+1,j-1))+M[i,j]$\\
+		The runtime of the iterative algorithm is as follows:\\
+		The big-O of initailizing $C$ is $O(nm)$ because there are $n\times m$ cells in $C$ and 
+		every cell will be visisted. The big-O of the first loop is $n$ trivially. The big-O of the nested
+		for loops is $O(nm)$ because every cell will be visited 4 times and the visiting of the cell
+		will take a constant number of opertation. Lastly, the final loop will take $O(n)$ trivially.
+		Therfore, the runtime of the algorithm is $cnm+cn+cnm+cn\in O(nm)$.\\
+		\item  The algorithm is as follows:\\
+		Input : set $S$ of $n$ non-negative integers\\
+		Let $N$ be the sum of all $x_i\in S$.\\
+		if $N$ is odd, then return false and terminate\\
+		Let $N'$ be 0.\\
+		Let $best\gets N$\\
+		While $best\neq 0$\\
+		$\tab$ Let $min$ be $\infty$.\\
+		$\tab$ Let $index$ be 1.\\
+		$\tab$ for $i$ in the range 1 to $n$\\
+		$\tab \tab$ if $|best-2*S[i]|<min$\\
+		$\tab \tab \tab$ $min\gets |best-2*S[i]|$\\
+		$\tab \tab \tab$ $index\gets i$\\
+		$\tab$ if $min<best$\\
+		$\tab \tab$ $N\gets N-S[index]$\\
+		$\tab \tab$ $N'\gets N'+S[index]$\\
+		$\tab \tab$ $best\gets min$\\
+		$\tab \tab$ remove $S[index]$ from $S$\\
+		$\tab$ else\\
+		$\tab \tab$ return false and terminate\\
+		return true\\ \\
+		The runtime of the iterative algorithm is as follows:\\
+		Calculating the sume of all $x_i\in S$ will take $N$ time. The while loop will run at most
+		$n$ times. The for loop will run at most $n$ times. Therefore, the runtime is $O(N+n^2)$.\\
+		The recurrence relationship is as follows:\\
+		$T(n) = T(n-1) + n$.
+	\end{enumerate}
+ \end{document}

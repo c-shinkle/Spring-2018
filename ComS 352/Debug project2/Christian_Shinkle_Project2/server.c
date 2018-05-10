@@ -83,7 +83,7 @@ int main(int argc, char **argv) {
             perror("accept");
             exit(EXIT_FAILURE);
         }
-	pthread_t thread;	
+		pthread_t thread;	
         suc = pthread_create(&thread, NULL, doit, &new_socket);
         if (suc == 0) {
            pthread_detach(thread);
